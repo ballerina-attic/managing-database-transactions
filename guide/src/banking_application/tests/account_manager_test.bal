@@ -17,7 +17,7 @@
 import ballerina/test;
 
 // Unit test for testing createAccount() function
-@test:Config
+@test:Config {}
 function testCreateAccount () {
     string name = "Carol";
     // Create account for username "Carol"
@@ -50,7 +50,7 @@ function testVerifyAccountPass () {
 }
 
 // Unit test for testing verifyAccount() function - failing scenario: due to invalid account
-@test:Config
+@test:Config {}
 function testVerifyAccountFail () {
     // Provide a non existing account ID to method 'verifyAccount()'
     boolean|error verifyAccRet = verifyAccount(1234);
@@ -108,7 +108,7 @@ function testDepositMoneyFailCase1 () {
 }
 
 // Unit test for testing depositMoney() function - failing scenario: due to invalid account
-@test:Config
+@test:Config {}
 function testDepositMoneyFailCase2 () {
     // Provide a non existing account ID to method 'depositMoney()' and try to deposit $100
     var depositRet = depositMoney(1234, 100);
@@ -132,19 +132,23 @@ function testCheckBalancePass () {
     test:assertTrue(createAccRet is int, msg = "Failed to create account");
     if (createAccRet is int) {
         // Deposit $500 to Grace's account
-        _ = depositMoney(createAccRet, 500);
-        // Check balance in Grace's account
-        int|error balance = checkBalance(createAccRet);
-        test:assertTrue(balance is int, msg = "Failed to check balance");
-        if (balance is int) {
-            // Grace should have $500 balance in account
-            test:assertEquals(balance, 500, msg = "Method 'checkBalance()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet, 500);
+        if (depositRet is error) {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+        } else {
+            // Check balance in Grace's account
+            int|error balance = checkBalance(createAccRet);
+            test:assertTrue(balance is int, msg = "Failed to check balance");
+            if (balance is int) {
+                // Grace should have $500 balance in account
+                test:assertEquals(balance, 500, msg = "Method 'checkBalance()' is not behaving as intended");
+            }
         }
     }
 }
 
 // Unit test for testing checkBalance() function - failing scenario: due to invalid account
-@test:Config
+@test:Config {}
 function testCheckBalanceFail () {
     // Provide a non existing account ID to method 'checkBalance()'
     //// An error is expected in this case
@@ -172,16 +176,20 @@ function testWithdrawMoneyPass () {
     test:assertTrue(createAccRet is int, msg = "Failed to create account");
     if (createAccRet is int) {
         // Deposit $500 to Heidi's account
-        _ = depositMoney(createAccRet, 500);
-        // Withdraw $300 from Heidi's account
-        var withdrawRet = withdrawMoney(createAccRet, 300);
-        if (withdrawRet is error) {
-            // Expected return value is nill (not any errors) - Therefore, the below should not be matched
-            // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
-            test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet, 500);
+        if (depositRet is error) {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
         } else {
-            // Below assertion is expected to be executed
-            test:assertTrue(true, msg = "Method 'withdrawMoney()' is not behaving as intended");
+            // Withdraw $300 from Heidi's account
+            var withdrawRet = withdrawMoney(createAccRet, 300);
+            if (withdrawRet is error) {
+                // Expected return value is nill (not any errors) - Therefore, the below should not be matched
+                // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
+                test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+            } else {
+                // Below assertion is expected to be executed
+                test:assertTrue(true, msg = "Method 'withdrawMoney()' is not behaving as intended");
+            }
         }
     }
 }
@@ -197,25 +205,29 @@ function testWithdrawMoneyFailCase1 () {
     test:assertTrue(createAccRet is int, msg = "Failed to create account");
     if (createAccRet is int) {
         // Deposit $500 to Judy's account
-        _ = depositMoney(createAccRet, 500);
-        // Try to pass a negative amount to withdraw
-        var withdrawRet = withdrawMoney(createAccRet, -100);
-        if (withdrawRet is ()) {
-            // An error is expected to be returned (not nill) - Therefore, the below should not be matched
-            // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
-            test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet, 500);
+        if (depositRet is error) {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
         } else {
-            // Expected error message
-            string expectedErrMsg = "Error: Invalid amount";
-            // Test whether the error message is as expected
-            test:assertEquals(withdrawRet.reason(), expectedErrMsg, msg =
-                "Method 'withdrawMoney()' is not behaving as intended");
+            // Try to pass a negative amount to withdraw
+            var withdrawRet = withdrawMoney(createAccRet, -100);
+            if (withdrawRet is ()) {
+                // An error is expected to be returned (not nill) - Therefore, the below should not be matched
+                // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
+                test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+            } else {
+                // Expected error message
+                string expectedErrMsg = "Error: Invalid amount";
+                // Test whether the error message is as expected
+                test:assertEquals(withdrawRet.reason(), expectedErrMsg, msg =
+                    "Method 'withdrawMoney()' is not behaving as intended");
+            }
         }
     }
 }
 
 // Unit test for testing withdrawMoney() function - failing scenario: due to invalid account
-@test:Config
+@test:Config {}
 function testWithdrawMoneyFailCase2 () {
     // Provide a non existing account ID to method 'withdrawMoney()'
     var withdrawRet = withdrawMoney(1234, 200);
@@ -243,19 +255,23 @@ function testWithdrawMoneyFailCase3 () {
     test:assertTrue(createAccRet is int, msg = "Failed to create account");
     if (createAccRet is int) {
         // Deposit $500 to Merlin's account
-        _ = depositMoney(createAccRet, 500);
-        // Try to pass a big amount to withdraw, which is greater than the available balance
-        var withdrawRet = withdrawMoney(createAccRet, 1500);
-        if (withdrawRet is ()) {
-            // An error is expected to be returned (not nill) - Therefore, the below should not be matched
-            // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
-            test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet, 500);
+        if (depositRet is error) {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
         } else {
-            // Expected error message
-            string expectedErrMsg = "Error: Not enough balance";
-            // Test whether the error message is as expected
-            test:assertEquals(withdrawRet.reason(), expectedErrMsg, msg =
-                "Method 'withdrawMoney()' is not behaving as intended");
+            // Try to pass a big amount to withdraw, which is greater than the available balance
+            var withdrawRet = withdrawMoney(createAccRet, 1500);
+            if (withdrawRet is ()) {
+                // An error is expected to be returned (not nill) - Therefore, the below should not be matched
+                // Hence, the below assertion should not be executed unless withdrawMoney function behaves erroneously
+                test:assertTrue(false, msg = "Method 'withdrawMoney()' is not behaving as intended");
+            } else {
+                // Expected error message
+                string expectedErrMsg = "Error: Not enough balance";
+                // Test whether the error message is as expected
+                test:assertEquals(withdrawRet.reason(), expectedErrMsg, msg =
+                    "Method 'withdrawMoney()' is not behaving as intended");
+            }
         }
     }
 }
@@ -273,13 +289,17 @@ function testTransferMoneyPass () {
         test:assertTrue(createAccRet2 is int, msg = "Failed to create account");
         if (createAccRet2 is int) {
             // Deposit $500 to Walter's account
-            _ = depositMoney(createAccRet1, 500);
+            var depositRet1 = depositMoney(createAccRet1, 500);
             // Deposit $1000 to Wesley's account
-            _ = depositMoney(createAccRet2, 1000);
-            // Transfer $700 from Wesley's account to Walter's account
-            boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, 700);
-            // 'isSuccessful' should be true as transaction is expected to be successful
-            test:assertTrue(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            var depositRet2 = depositMoney(createAccRet2, 1000);
+            if (depositRet1 is () && depositRet2 is ()) {
+                // Transfer $700 from Wesley's account to Walter's account
+                boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, 700);
+                // 'isSuccessful' should be true as transaction is expected to be successful
+                test:assertTrue(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            } else {
+                test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+            }
         }
     }
 }
@@ -297,13 +317,17 @@ function testTransferMoneyFail1 () {
         test:assertTrue(createAccRet2 is int, msg = "Failed to create account");
         if (createAccRet2 is int) {
             // Deposit $500 to Victor's account
-            _ = depositMoney(createAccRet1, 500);
+            var depositRet1 = depositMoney(createAccRet1, 500);
             // Deposit $1000 to Vanna's account
-            _ = depositMoney(createAccRet2, 1000);
-            // Try to pass a negative amount to transfer
-            boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, -200);
-            // 'isSuccessful' should be false as transaction is expected to fail
-            test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            var depositRet2 = depositMoney(createAccRet2, 1000);
+            if (depositRet1 is () && depositRet2 is ()) {
+                // Try to pass a negative amount to transfer
+                boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, -200);
+                // 'isSuccessful' should be false as transaction is expected to fail
+                test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            } else {
+                test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+            }
         }
     }
 }
@@ -321,13 +345,17 @@ function testTransferMoneyFail2 () {
         test:assertTrue(createAccRet2 is int, msg = "Failed to create account");
         if (createAccRet2 is int) {
             // Deposit $500 to Trent's account
-            _ = depositMoney(createAccRet1, 500);
+            var depositRet1 = depositMoney(createAccRet1, 500);
             // Deposit $1000 to Ted's account
-            _ = depositMoney(createAccRet2, 1000);
-            // Try to pass a big amount to Transfer, which is greater than the available balance
-            boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, 1500);
-            // 'isSuccessful' should be false as transaction is expected to fail
-            test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            var depositRet2 = depositMoney(createAccRet2, 1000);
+            if (depositRet1 is () && depositRet2 is ()) {
+                // Try to pass a big amount to Transfer, which is greater than the available balance
+                boolean isSuccessful = transferMoney(createAccRet2, createAccRet1, 1500);
+                // 'isSuccessful' should be false as transaction is expected to fail
+                test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+            } else {
+                test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+            }
         }
     }
 }
@@ -342,11 +370,15 @@ function testTransferMoneyFail3 () {
     test:assertTrue(createAccRet1 is int, msg = "Failed to create account");
     if (createAccRet1 is int) {
         // Deposit $500 to Broad's account
-        _ = depositMoney(createAccRet1, 500);
-        // Provide a non existing account ID as transferor account ID to method 'transferMoney()'
-        boolean isSuccessful = transferMoney(1234, createAccRet1, 100);
-        // 'isSuccessful' should be false as transaction is expected to fail
-        test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet1, 500);
+        if (depositRet is ()) {
+            // Provide a non existing account ID as transferor account ID to method 'transferMoney()'
+            boolean isSuccessful = transferMoney(1234, createAccRet1, 100);
+            // 'isSuccessful' should be false as transaction is expected to fail
+            test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+        } else {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+        }
     }
 }
 
@@ -360,10 +392,14 @@ function testTransferMoneyFail4 () {
     test:assertTrue(createAccRet1 is int, msg = "Failed to create account");
     if (createAccRet1 is int) {
         // Deposit $500 to White's account
-        _ = depositMoney(createAccRet1, 500);
-        // Provide a non existing account ID as transferee to method 'transferMoney()'
-        boolean isSuccessful = transferMoney(createAccRet1, 1234, 100);
-        // 'isSuccessful' should be false as transaction is expected to fail
-        test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+        var depositRet = depositMoney(createAccRet1, 500);
+        if (depositRet is ()) {
+            // Provide a non existing account ID as transferee to method 'transferMoney()'
+            boolean isSuccessful = transferMoney(createAccRet1, 1234, 100);
+            // 'isSuccessful' should be false as transaction is expected to fail
+            test:assertFalse(isSuccessful, msg = "Method 'transferMoney()' is not behaving as intended");
+        } else {
+            test:assertTrue(false, msg = "Method 'depositMoney()' is not behaving as intended");
+        }
     }
 }

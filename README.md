@@ -50,25 +50,32 @@ The first scenario shows a successful transaction whereas the other two fail due
 
 ### Create the project structure
 
-Ballerina is a complete programming language that supports custom project structures. Use the following package structure for this guide.
+Ballerina is a complete programming language that supports custom project structures. Use the following module structure for this guide.
 
 ```
 managing-database-transactions
  └── guide
+      ├── Ballerina.toml
       ├── ballerina.conf
-      └── banking_application
-           ├── account_manager.bal
-           ├── application.bal
-           └── tests
-                └── account_manager_test.bal
+      ├── src
+          └── banking_application
+              ├── account_manager.bal
+              ├── application.bal
+              └── tests
+                  └── account_manager_test.bal
 ```
 
-- Create the above directories in your local machine and also create empty `.bal` files.
+- Create the basic project structure by running the following command.
+    ```bash
+       $ ballerina create guide
+    ```
 
-- Then open the terminal and navigate to `managing-database-transactions/guide` and run Ballerina project initializing toolkit.
+- Then open the terminal and navigate to `guide` directory and run the following command to create the new module `banking_application`.
 ```bash
-   $ ballerina init
+   $ ballerina create banking_application
 ```
+
+Now, add the `account_manager.bal`, `application.bal` and `account_manager_test.bal` files in place of `main.bal` and `main_test.bal` which get created as a part of the generic project template.
 
 ### Implementation
 
@@ -101,21 +108,19 @@ public function transferMoney(int fromAccId, int toAccId, int amount) returns bo
             } else {
                 log:printError("Error while depositing the money: " + depositRet.reason());
                 // Abort transaction if deposit fails.
-                log:printError("Failed to transfer money from account ID " + fromAccId + " to account ID " +
-                    toAccId);
+                log:printError(io:sprintf("Failed to transfer money from account ID %s to account ID %s", fromAccId, toAccId));
                 abort;
             }
         } else {
             log:printError("Error while withdrawing the money: " + withdrawRet.reason());
             // Abort transaction if withdrawal fails.
-            log:printError("Failed to transfer money from account ID " + fromAccId + " to account ID " + toAccId);
+            log:printError(io:sprintf("Failed to transfer money from account ID %s to account ID %s", fromAccId, toAccId));
             abort;
         }
     } committed {
         log:printInfo("Transaction: " + transactions:getCurrentTransactionId() + " committed");
         // If transaction successful.
-        log:printInfo("Successfully transferred $" + amount + " from account ID " + fromAccId + " to account ID " +
-                toAccId);
+        log:printInfo(io:sprintf("Successfully transferred $%s from account ID %s to account ID %s", amount, fromAccId, toAccId));
     } aborted {
         log:printInfo("Transaction: " + transactions:getCurrentTransactionId() + " aborted");
     }
@@ -131,50 +136,53 @@ Skeleton of the `account_manager.bal` file attached below.
 ```ballerina
 // Imports
 
-// MySQL Client
-mysql:Client bankDB = new({
-        host: config:getAsString("DATABASE_HOST", defaultValue = "localhost"),
-        port: config:getAsInt("DATABASE_PORT", defaultValue = 3306),
-        name: config:getAsString("DATABASE_NAME", defaultValue = "bankDB"),
+string host = config:getAsString("DATABASE_HOST", "localhost");
+int port = config:getAsInt("DATABASE_PORT", 3306);
+string name = config:getAsString("DATABASE_NAME", "bankDB");
+string url = "jdbc:mysql://" + host + ":" + io:sprintf("%s", port) + "/" + name;
+
+// JDBC Client
+jdbc:Client bankDB = new({
+        url: url,
         username: config:getAsString("DATABASE_USERNAME", defaultValue = "root"),
         password: config:getAsString("DATABASE_PASSWORD", defaultValue = "root"),
         dbOptions: { useSSL: false }
     });
 
 // Function to add users to 'ACCOUNT' table of 'bankDB' database
-public function createAccount(string name) returns (int|error) {
+public function createAccount(string name) returns @tainted (int|error) {
     // Implemetation
     // Return the primary key, which will be the account number of the account
     // or an error in case of a failure
 }
 
 // Function to verify an account whether it exists or not
-public function verifyAccount(int accId) returns (boolean|error) {
+public function verifyAccount(int accId) returns @tainted (boolean|error) {
     // Implementation
     // Return a boolean, which is true if account exists; false otherwise
     // Or an error in case of a failure
 }
 
 // Function to check balance in an account
-public function checkBalance(int accId) returns (int|error) {
+public function checkBalance(int accId) returns @tainted (int|error) {
     // Implementation
     // Return the balance or error
 }
 
 // Function to deposit money to an account
-public function depositMoney(int accId, int amount) returns error|()  {
+public function depositMoney(int accId, int amount) returns @tainted error|()  {
     // Implementation
     // Return error or ()
 }
 
 // Function to withdraw money from an account
-public function withdrawMoney(int accId, int amount) returns (error|()) {
+public function withdrawMoney(int accId, int amount) returns @tainted (error|()) {
     // Implementation
     // Return error or ()
 }
 
 // Function to transfer money from one account to another
-public function transferMoney(int fromAccId, int toAccId, int amount) returns boolean {
+public function transferMoney(int fromAccId, int toAccId, int amount) returns @tainted boolean {
     // Implementation
     // Return a boolean, which is true if transaction is successful; false otherwise
 }
@@ -313,7 +321,7 @@ it is in same transaction
 In Ballerina, the unit test cases should be in the same package inside a folder named as 'tests'.  When writing the test functions the below convention should be followed.
 - Test functions should be annotated with `@test:Config`. See the below example.
 ```ballerina
-   @test:Config
+   @test:Config {}
    function testCreateAccount() {
 ```
   

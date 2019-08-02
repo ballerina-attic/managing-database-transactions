@@ -102,7 +102,8 @@ function testDepositMoneyFailCase1 () {
         } else {
             string expectedErrMsg = "Error: Invalid amount";
             // Test whether the error message is as expected
-            test:assertEquals(depositRet.reason(), expectedErrMsg, msg = "Method 'depositMoney()' is not behaving as intended");
+            test:assertEquals(depositRet.reason(), expectedErrMsg,
+            msg = "Method 'depositMoney()' is not behaving as intended");
         }
     }
 }
@@ -117,7 +118,8 @@ function testDepositMoneyFailCase2 () {
     } else {
         string expectedErrMsg = "Error: Account does not exist";
         // Test whether the error message is as expected
-        test:assertEquals(depositRet.reason(), expectedErrMsg, msg="Method 'depositMoney()' is not behaving as intended");
+        test:assertEquals(depositRet.reason(), expectedErrMsg,
+        msg="Method 'depositMoney()' is not behaving as intended");
     }
 }
 

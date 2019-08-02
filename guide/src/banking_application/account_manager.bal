@@ -50,7 +50,7 @@ public function createAccount(string name) returns @tainted (int|error) {
         int|error returnVal;
         if (jsonConvertRet is json) {
             json[] ret = <json[]>jsonConvertRet;
-            retVal = typedesc<int>.constructFrom(checkpanic ret[0]?.ACCOUNT_ID);
+            retVal = int.constructFrom(checkpanic ret[0]?.ACCOUNT_ID);
             if (retVal is int) {
                 log:printInfo(io:sprintf("Account ID for user: '%s': %s", name, retVal));
             }
